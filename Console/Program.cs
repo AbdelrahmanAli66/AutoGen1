@@ -1,2 +1,2 @@
 ﻿
-Console.WriteLine(TempTest.TempClass.Temp);
+Console.WriteLine(Consts.ConstStrings.Stringlist);

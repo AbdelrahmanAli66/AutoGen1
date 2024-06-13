@@ -12,8 +12,6 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0" />
-		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="CsvLoadType" />
-
 	</ItemGroup>
 
 </Project>

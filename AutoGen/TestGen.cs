@@ -18,31 +18,25 @@ public class TestGen : IIncrementalGenerator
         //var complication = context.CompilationProvider.Combine(provider.Collect());
 
         //context.RegisterSourceOutput(complication, Execute);
-        IncrementalValuesProvider<AdditionalText> textFiles = context.AdditionalTextsProvider.Where(static file => file.Path.EndsWith(".txt"));
-        IncrementalValuesProvider<(string name, string content)> namesAndContents = textFiles.Select((text, cancellationToken) => (name: Path.GetFileNameWithoutExtension(text.Path), content: text.GetText(cancellationToken)!.ToString()));
-        var complication = context.CompilationProvider.Combine(namesAndContents.Collect());
-        context.RegisterSourceOutput(namesAndContents, (spc, nameAndContent) =>
-        {
-            var x = nameAndContent;
-            spc.AddSource($"ConstStrings.{nameAndContent.name}", $@"
-    public static partial class ConstStrings
-    {{
-        public const string {nameAndContent.name} = ""{nameAndContent.content}"";
-    }}");
-        });
-        context.RegisterSourceOutput(complication, Extract);
+        var files11 = context.AdditionalTextsProvider.WithTrackingName("");
+        var files = context.AdditionalTextsProvider
+               .Where(a => a.Path.EndsWith(".txt"))
+               .Select((a, c) => (Path.GetFileNameWithoutExtension(a.Path), a.GetText(c)!.ToString()));
+        var compilationAndFiles = context.CompilationProvider.Combine(files.Collect());
+        context.RegisterSourceOutput(compilationAndFiles, (productionContext, sourceContext) => Generate(productionContext, sourceContext));
     }
 
-    private void Extract(SourceProductionContext context, (Compilation Left, ImmutableArray<(string name, string content)> Right) tuple)
+    private void Generate(SourceProductionContext productionContext, (Compilation Left, ImmutableArray<(string, string)> Right) sourceContext)
     {
-        var code = $@"ConstStrings.{tuple.Right.FirstOrDefault().name}
-    public static partial class ConstStrings
+        var code = $@"namespace Consts;
+    public static class ConstStrings
     {{
-        public const string {tuple.Right.FirstOrDefault().name} = ""{tuple.Right.FirstOrDefault().content}"";
-    }}";
-        context.AddSource("GeneratedGen.g.cs", code);
-
+        public static List<string> Stringlist = [ {sourceContext.Right.FirstOrDefault().Item1}];
+    }}
+        ";
+        productionContext.AddSource("GeneratedGen.g.cs", code);
     }
+
 
 
 
